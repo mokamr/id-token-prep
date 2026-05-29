@@ -1,0 +1,60 @@
+apiVersion: builtin
+kind: PatchTransformer
+metadata:
+  name: sas-compute-server-add-id-token-server-for-wif
+patch: |-
+  - op: add
+    path: "/template/spec/volumes/-"
+    value:
+      name: webserver
+      configMap:
+       name: id-token-webserver-code
+  - op: add
+    path: "/template/spec/containers/-"
+    value:
+      command:
+        - python
+        - /app/id-token-webserver.py
+      env:
+      - name: SAS_REFRESH_LIFE
+        value: "3600"
+      - name: SAS_REFRESH_EXECUTABLE
+        value: /opt/sas/viya/home/bin/refresh
+      - name: SAS_REFRESH_CONFIG_LOG_LEVEL
+        value: TRACE
+      envFrom:
+      - secretRef:
+          name: sas-consul-client
+      image: us-east1-docker.pkg.dev/cloudup-1261/sticlabreg/id-token-wif-chainguard-v2@sha256:b0c248ee8878ce9868ab5dd59f2f5da667ea20622ada8cf571862c01ae005de3
+      imagePullPolicy: IfNotPresent
+      name: id-token-wif
+      resources:
+        limits:
+          cpu: 500m
+          memory: 500Mi
+        requests:
+          cpu: 50m
+          memory: 50Mi
+      securityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+          drop:
+          - ALL
+        privileged: false
+        readOnlyRootFilesystem: true
+        runAsNonRoot: true
+      terminationMessagePath: /dev/termination-log
+      terminationMessagePolicy: File
+      volumeMounts:
+      - mountPath: /tmp
+        name: tmp
+      - mountPath: /config
+        name: config
+      - mountPath: /security
+        name: security
+      - name: webserver
+        mountPath: /app/id-token-webserver.py
+        subPath: id-token-webserver.py
+target:
+  kind: PodTemplate
+  name: sas-compute-job-config
