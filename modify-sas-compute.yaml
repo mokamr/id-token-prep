@@ -25,7 +25,7 @@ patch: |-
       envFrom:
       - secretRef:
           name: sas-consul-client
-      image: us-east1-docker.pkg.dev/cloudup-1261/sticlabreg/id-token-wif-chainguard-v2@sha256:b0c248ee8878ce9868ab5dd59f2f5da667ea20622ada8cf571862c01ae005de3
+      image: <YOUR_CHAINGUARD_IMAGE_WITH_SHA>
       imagePullPolicy: IfNotPresent
       name: id-token-wif
       resources:
